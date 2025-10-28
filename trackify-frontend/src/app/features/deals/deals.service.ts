@@ -17,7 +17,7 @@ export interface Deal {
 @Injectable({ providedIn: 'root' })
 export class DealsService {
   private http = inject(HttpClient);
-  private base = 'http://localhost:8080/api/deals';
+  private base = 'http://18.118.186.205:8080/api/deals';
 
   list() { return this.http.get<Deal[]>(this.base); }
   byStage(stage: DealStage) { return this.http.get<Deal[]>(`${this.base}/stage/${stage}`); }
