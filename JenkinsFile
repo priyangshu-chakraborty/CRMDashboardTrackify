@@ -59,33 +59,31 @@ pipeline {
             }
         }
 
-stage('Deploy to EC2') {
-    steps {
-        withCredentials([sshUserPrivateKey(credentialsId: 'ec2-key', keyFileVariable: 'KEYFILE')]) {
-            script {
-                dir('infra') {
-                    // Capture EC2 IP from Terraform output
-                    def ec2_ip = powershell(returnStdout: true, script: '(terraform output -raw ec2_public_ip).Trim()').trim()
-                    echo "✅ EC2 Public IP: ${ec2_ip}"
-
-                    // Fix key permissions properly before SSH
-                    bat """
-                    icacls "%KEYFILE%" /inheritance:r
-                    icacls "%KEYFILE%" /grant "SYSTEM:F"
-                    icacls "%KEYFILE%" /grant "Administrators:F"
-                    """
-
-                    // SSH into EC2 safely
-                    bat 'cmd /c ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ec2-user@' + ec2_ip + ' "if ! command -v docker-compose &>/dev/null; then sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose; fi && docker-compose -f ~/docker-compose.yml pull && docker-compose -f ~/docker-compose.yml up -d"'
+        stage('Deploy to EC2') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-key', keyFileVariable: 'KEYFILE')]) {
+                    script {
+                        dir('infra') {
+                            // Get EC2 public IP
+                            def ec2_ip = powershell(returnStdout: true, script: '(terraform output -raw ec2_public_ip).Trim()').trim()
+                            echo "✅ EC2 Public IP: ${ec2_ip}"
+        
+                            // Fix key permissions
+                            bat """
+                            icacls "%KEYFILE%" /inheritance:r
+                            icacls "%KEYFILE%" /grant "SYSTEM:F"
+                            icacls "%KEYFILE%" /grant "Administrators:F"
+                            """
+        
+                            // 🔹 Upload docker-compose.yml to EC2
+                            bat 'cmd /c scp -o StrictHostKeyChecking=no -i "%KEYFILE%" ..\\docker-compose.yml ec2-user@' + ec2_ip + ':~/docker-compose.yml'
+        
+                            // 🔹 Install docker-compose if missing and deploy containers
+                            bat 'cmd /c ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ec2-user@' + ec2_ip + ' "if ! command -v docker-compose &>/dev/null; then sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose; fi && docker-compose -f ~/docker-compose.yml pull && docker-compose -f ~/docker-compose.yml up -d"'
+                        }
+                    }
                 }
             }
         }
-    }
-}
-
-
-
-
-
     }
 }
