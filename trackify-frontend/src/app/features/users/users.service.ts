@@ -5,7 +5,7 @@ import { User } from '../../core/types';
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private http = inject(HttpClient);
-  private base = 'http://localhost:8080/api/auth';
+  private base = 'http://18.118.186.205:8080/api/auth';
 
   list() { return this.http.get<User[]>(`${this.base}/users`); }
   get(userId: number) { return this.http.get<User>(`${this.base}/users/${userId}`); }
