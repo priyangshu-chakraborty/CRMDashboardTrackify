@@ -72,8 +72,9 @@ pipeline {
                             bat """
                             icacls "%KEYFILE%" /inheritance:r
                             icacls "%KEYFILE%" /grant "SYSTEM:F"
-                            icacls "%KEYFILE%" /grant "%USERNAME%:F"
+                            icacls "%KEYFILE%" /grant "Administrators:F"
                             """
+
 
                             // SSH into EC2 and deploy Docker containers
                             bat """
