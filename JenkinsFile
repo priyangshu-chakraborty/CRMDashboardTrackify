@@ -74,8 +74,9 @@ pipeline {
         
                             // SSH into EC2 and deploy Docker containers
                             bat """
-                            ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ec2-user@${ec2_ip} "docker compose -f ~/docker-compose.yml pull && docker compose -f ~/docker-compose.yml up -d"
+                            cmd /c ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ec2-user@${ec2_ip} "docker compose -f ~/docker-compose.yml pull && docker compose -f ~/docker-compose.yml up -d"
                             """
+
                         }
                     }
                 }
