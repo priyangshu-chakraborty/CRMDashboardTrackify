@@ -10,9 +10,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/priyangshu-chakraborty/CRMDashboardTrackify.git'
+                git branch: 'main', url: 'https://github.com/priyangshu-chakraborty/CRMDashboardTrackify.git'
             }
         }
+
 
         stage('Build Backend') {
             steps {
