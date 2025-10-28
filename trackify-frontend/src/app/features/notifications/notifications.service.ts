@@ -17,7 +17,7 @@ export interface EmailNotification {
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private http = inject(HttpClient);
-  private base = 'http://localhost:8080/api/notifications';
+  private base = 'http://18.118.186.205:8080/api/notifications';
 
   list() { return this.http.get<EmailNotification[]>(this.base); }
   byStatus(status: string) { return this.http.get<EmailNotification[]>(`${this.base}/status/${status}`); }
