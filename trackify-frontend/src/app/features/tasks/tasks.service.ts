@@ -19,7 +19,7 @@ export interface Task {
 export class TasksService {
   private http = inject(HttpClient);
   private notifications = inject(NotificationsService);
-  private base = 'http://localhost:8080/api/tasks';
+  private base = 'http://18.118.186.205:8080/api/tasks';
 
   list() { return this.http.get<Task[]>(this.base); }
   byStatus(status: TaskStatus) { return this.http.get<Task[]>(`${this.base}/status/${status}`); }
