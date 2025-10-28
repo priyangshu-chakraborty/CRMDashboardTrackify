@@ -95,7 +95,7 @@ public class AuthController {
     }
 
     // Get current user profile (any authenticated user)
-    @GetMapping("/api/auth/me")
+    @GetMapping("me")
     public UserDTO getCurrentUser(Authentication authentication) {
         return userService.getUserByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
