@@ -37,8 +37,8 @@ pipeline {
                                                   usernameVariable: 'DOCKERHUB_USER',
                                                   passwordVariable: 'DOCKERHUB_PASS')]) {
                     bat """
-                    docker build -t %DOCKERHUB_USER%/%DOCKERHUB_REPO_BE%:latest crm
-                    docker build -t %DOCKERHUB_USER%/%DOCKERHUB_REPO_FE%:latest trackify-frontend
+                    docker build --no-cache -t %DOCKERHUB_USER%/%DOCKERHUB_REPO_BE%:latest crm
+                    docker build --no-cache -t %DOCKERHUB_USER%/%DOCKERHUB_REPO_FE%:latest trackify-frontend
                     echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
                     docker push %DOCKERHUB_USER%/%DOCKERHUB_REPO_BE%:latest
                     docker push %DOCKERHUB_USER%/%DOCKERHUB_REPO_FE%:latest
@@ -67,17 +67,20 @@ pipeline {
                             // Get EC2 public IP
                             def ec2_ip = powershell(returnStdout: true, script: '(terraform output -raw ec2_public_ip).Trim()').trim()
                             echo "✅ EC2 Public IP: ${ec2_ip}"
-        
+
                             // Fix key permissions
                             bat """
                             icacls "%KEYFILE%" /inheritance:r
                             icacls "%KEYFILE%" /grant "SYSTEM:F"
                             icacls "%KEYFILE%" /grant "Administrators:F"
                             """
-        
+
+                            // 🔹 Cleanup old containers/images completely before redeploy
+                            bat 'cmd /c ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ec2-user@' + ec2_ip + ' "docker stop $(docker ps -aq) || true && docker rm $(docker ps -aq) || true && docker rmi -f $(docker images -q) || true && docker system prune -af || true"'
+
                             // 🔹 Upload docker-compose.yml to EC2
                             bat 'cmd /c scp -o StrictHostKeyChecking=no -i "%KEYFILE%" ..\\docker-compose.yml ec2-user@' + ec2_ip + ':~/docker-compose.yml'
-        
+
                             // 🔹 Install docker-compose if missing and deploy containers
                             bat 'cmd /c ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ec2-user@' + ec2_ip + ' "if ! command -v docker-compose &>/dev/null; then sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose; fi && docker-compose -f ~/docker-compose.yml pull && docker-compose -f ~/docker-compose.yml up -d"'
                         }
