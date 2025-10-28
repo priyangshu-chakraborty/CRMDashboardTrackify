@@ -1,10 +1,13 @@
-version: '3.8'
+version: "3"
 services:
   frontend:
-    image: priyangshuchakraborty/angular-frontend:latest
+    image: priyangshuchakraborty/new-frontend:latest
     ports:
       - "80:80"
+    restart: always
+
   backend:
-    image: priyangshuchakraborty/backend-app:latest
+    image: priyangshuchakraborty/new-backend:latest
     ports:
       - "8080:8080"
+    restart: always
