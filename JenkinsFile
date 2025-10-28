@@ -65,8 +65,12 @@ pipeline {
                                                   keyFileVariable: 'EC2_KEY',
                                                   usernameVariable: 'EC2_USER')]) {
                     script {
+                        // Capture EC2 public IP from Terraform output
+                        def ec2Ip = sh(script: "terraform -chdir=infra output -raw ec2_public_ip", returnStdout: true).trim()
+
+                        // SSH into EC2 and deploy with docker-compose
                         sh """
-                        ssh -o StrictHostKeyChecking=no -i $EC2_KEY $EC2_USER@$(terraform -chdir=infra output -raw ec2_public_ip) \\
+                        ssh -o StrictHostKeyChecking=no -i $EC2_KEY $EC2_USER@${ec2Ip} \\
                         'docker compose -f ~/docker-compose.yml pull && docker compose -f ~/docker-compose.yml up -d'
                         """
                     }
