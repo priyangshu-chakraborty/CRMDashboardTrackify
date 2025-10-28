@@ -16,7 +16,7 @@ export interface Customer {
 @Injectable({ providedIn: 'root' })
 export class CustomersService {
   private http = inject(HttpClient);
-  private base = 'http://localhost:8080/api/customers';
+  private base = 'http://18.118.186.205:8080/api/customers';
 
   list() { return this.http.get<Customer[]>(this.base); }
   get(customerId: number) { return this.http.get<Customer>(`${this.base}/${customerId}`); }
