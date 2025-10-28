@@ -8,7 +8,7 @@ import { AuthResponse, User } from './types';
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private baseUrl = 'http://localhost:8080/api/auth';
+  private baseUrl = 'http://18.118.186.205:8080/api/auth';
   private tokenKey = 'trackify_token';
   private userKey = 'trackify_user';
   private user$ = new BehaviorSubject<User | null>(this.loadUser());
