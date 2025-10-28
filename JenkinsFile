@@ -64,19 +64,23 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ec2-key', keyFileVariable: 'KEYFILE')]) {
                     script {
                         dir('infra') {
-                            // Get EC2 public IP
-                            def ec2_ip = bat(script: 'terraform output -raw ec2_public_ip', returnStdout: true).trim()
+                            // Capture EC2 IP from Terraform output
+                            def ec2_ip = bat(
+                                script: 'terraform output -raw ec2_public_ip',
+                                returnStdout: true
+                            ).trim()
+        
                             echo "✅ EC2 Public IP: ${ec2_ip}"
+        
+                            // SSH into EC2 and deploy Docker containers
+                            bat """
+                            ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ec2-user@${ec2_ip} "docker compose -f ~/docker-compose.yml pull && docker compose -f ~/docker-compose.yml up -d"
+                            """
                         }
-
-                        // Now run SSH using PowerShell (bat can be finicky with SSH on Windows)
-                        powershell """
-                        echo "Connecting to EC2 at ${ec2_ip}..."
-                        ssh -o StrictHostKeyChecking=no -i ${KEYFILE} ec2-user@${ec2_ip} "docker compose -f ~/docker-compose.yml pull && docker compose -f ~/docker-compose.yml up -d"
-                        """
                     }
                 }
             }
         }
+
     }
 }
